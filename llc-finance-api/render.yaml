@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: llc-finance-api
+    env: docker
+    plan: free
+    autoDeploy: true
+    region: oregon
+    rootDir: .
+    dockerfilePath: Dockerfile
+    healthCheckPath: /healthz
+    envVars:
+      - key: API_KEY
+        fromSecret: llc_finance_api_key
+      - key: FERNET_KEY
+        fromSecret: llc_finance_fernet_key
+      - key: DATABASE_URL
+        fromSecret: llc_finance_database_url
+      - key: PLAID_CLIENT_ID
+        fromSecret: plaid_client_id
+      - key: PLAID_SECRET
+        fromSecret: plaid_secret
+      - key: PLAID_ENV
+        value: sandbox
+

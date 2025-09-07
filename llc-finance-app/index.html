@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Accounting Guide for Your Real Estate LLC</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Harmony (Beige, Slate, Sage) -->
+    <!-- Application Structure Plan: A thematic, single-page guide designed for educational flow. It starts with foundational principles, moves to a central interactive flowchart visualizing money movement, and concludes with practical management topics. This structure breaks down a complex report into a guided, step-by-step learning experience, prioritizing user understanding over mirroring the report's linear format. The interactive flowchart is the core, allowing users to actively explore the specific transactions relevant to them, reinforcing the critical concept of financial separation. -->
+    <!-- Visualization & Content Choices: The primary visualization is a custom-built interactive flowchart using HTML/CSS and JS, not a library, for maximum control over styling and interaction. Clicking a flow step updates a dedicated panel with explanations and journal entries (Goal: Organize/Change, Method: HTML/JS Interaction). A Chart.js donut chart is used illustratively to break down debt payments (Goal: Inform, Method: Chart.js/Canvas). Key concepts are presented in clickable cards to manage information density (Goal: Inform, Method: HTML/JS Interaction). This approach makes dense information digestible and engaging. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F8FAFC; /* Slate 50 */
+            color: #334155; /* Slate 700 */
+        }
+        .account-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .account-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+        .modal-bg {
+            transition: opacity 0.3s ease;
+        }
+        .modal-content {
+            transition: all 0.3s ease;
+        }
+        .tab.active {
+            border-bottom-color: #4F46E5; /* Indigo 600 */
+            color: #4F46E5;
+        }
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #4F46E5;
+            animation: spin 1s ease infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+    <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
+</head>
+<body class="antialiased">
+
+    <header class="bg-white shadow-sm sticky top-0 z-40">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <h1 class="text-xl font-bold text-slate-800">LLC Financial Dashboard</h1>
+            <div class="hidden md:flex space-x-6 items-center">
+                 <a href="#dashboard" class="text-slate-600 hover:text-slate-900">Dashboard</a>
+                 <a href="#connect-bank" class="text-slate-600 hover:text-slate-900">🏦 Connect Bank</a>
+                 <a href="#ai-insights" class="text-slate-600 hover:text-slate-900">✨ AI Insights</a>
+                 <a href="#principles" class="text-slate-600 hover:text-slate-900">Principles</a>
+                 <a href="https://drive.google.com/drive/folders/1DcRgHqcQ_9xvtsPAw-mXddEJswe6icxU?usp=sharing" target="_blank" class="bg-blue-50 text-blue-700 font-semibold py-2 px-4 rounded-lg hover:bg-blue-100 transition-colors">📁 Real Estate Drive</a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-6 py-12">
+
+        <section class="text-center mb-16">
+            <h2 class="text-4xl font-bold text-slate-800 mb-4">Interactive Financial Flow</h2>
+            <p class="max-w-3xl mx-auto text-lg text-slate-600">This dashboard visualizes the financial structure of your LLC. Click on any account to expand its details, view transactions, and see financing terms.</p>
+        </section>
+
+        <section id="dashboard" class="mb-16 relative">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-x-8 gap-y-16 items-start">
+                <!-- Personal Members & Rent -->
+                <div class="text-center space-y-8">
+                    <div class="flex justify-center items-center gap-8">
+                        <div id="julie-finances" data-account-id="juliePersonalFinances" class="account-card bg-white w-32 h-32 rounded-full shadow-lg border border-slate-200 flex items-center justify-center">
+                            <h4 class="font-bold text-slate-800 text-xl">Julie</h4>
+                        </div>
+                        <div id="david-finances" data-account-id="davidPersonalFinances" class="account-card bg-white w-32 h-32 rounded-full shadow-lg border border-slate-200 flex items-center justify-center">
+                            <h4 class="font-bold text-slate-800 text-xl">David</h4>
+                        </div>
+                    </div>
+                     <div id="heloc-loan" data-account-id="helocLoan" class="account-card bg-rose-50 p-4 rounded-full max-w-xs mx-auto">
+                        <div class="flex justify-between items-center px-2">
+                            <span class="font-semibold text-rose-700">HELOC Loan</span>
+                            <span id="heloc-loan-balance" class="font-bold text-rose-900">$0.00</span>
+                        </div>
+                    </div>
+                    <div id="rent-roll" data-account-id="rent" class="account-card bg-green-50 p-3 rounded-lg max-w-[220px] mx-auto">
+                        <div class="text-center">
+                            <span class="font-semibold text-slate-800">Rent Roll</span>
+                            <p id="rent-roll-total" class="font-bold text-slate-900 text-xl">$5,000</p>
+                            <p class="text-xs text-slate-600">Total Monthly Rent</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LLC Assets and Liabilities -->
+                <div class="lg:col-span-2 text-center">
+                    <h3 class="text-xl font-bold text-slate-800 mb-4">672 Elm St., LLC</h3>
+                    <div class="bg-white p-6 rounded-xl shadow-lg border border-slate-200">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <!-- Assets Column -->
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-xl mb-4 text-center">Assets</h4>
+                                <div class="space-y-4">
+                                    <div id="property-asset" data-account-id="propertyAsset" class="account-card bg-green-50 p-4 rounded-lg">
+                                        <div class="flex justify-between items-center">
+                                            <span class="font-semibold text-slate-700">672 Elm St</span>
+                                            <span id="property-asset-balance" class="font-bold text-slate-900">$0.00</span>
+                                        </div>
+                                    </div>
+                                    <div id="llc-bank" data-account-id="llcBank" class="account-card bg-green-50 p-4 rounded-lg">
+                                        <div class="flex justify-between items-center">
+                                            <span class="font-semibold text-slate-700">LLC Checking</span>
+                                            <span id="llc-bank-balance" class="font-bold text-slate-900">$0.00</span>
+                                        </div>
+                                    </div>
+                                    <div id="llc-savings" data-account-id="llcSavings" class="account-card bg-green-50 p-4 rounded-lg">
+                                        <div class="flex justify-between items-center">
+                                            <span class="font-semibold text-slate-700">LLC Savings</span>
+                                            <span id="llc-savings-balance" class="font-bold text-slate-900">$0.00</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Liabilities Column -->
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-xl mb-4 text-center">Liabilities</h4>
+                                <div class="space-y-4">
+                                    <div id="mortgage-loan" data-account-id="mortgageLoan" class="account-card bg-rose-50 p-4 rounded-lg">
+                                        <div class="flex justify-between items-center">
+                                            <span class="font-semibold text-rose-700">672 Elm St. Mortgage</span>
+                                            <span id="mortgage-loan-balance" class="font-bold text-rose-900">$0.00</span>
+                                        </div>
+                                    </div>
+                                    <div id="member-loan" data-account-id="memberLoan" class="account-card bg-rose-50 p-4 rounded-lg">
+                                        <div class="flex justify-between items-center">
+                                            <span class="font-semibold text-rose-700">Member Loan (Roof)</span>
+                                            <span id="member-loan-balance" class="font-bold text-rose-900">$0.00</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                         <div class="mt-8 text-center">
+                            <div id="equity-card" data-account-id="totalEquity" class="account-card bg-green-100 p-4 rounded-lg max-w-xs mx-auto">
+                                <span class="font-semibold text-slate-800">Total Equity</span>
+                                <p id="total-equity-balance" class="font-bold text-green-800 text-2xl">$0.00</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="connect-bank" class="mb-16 bg-white p-8 rounded-xl shadow-md border border-slate-200 text-center max-w-3xl mx-auto">
+            <h3 class="text-2xl font-bold text-slate-800 mb-3">We use Plaid for secure bank connections.</h3>
+            <p class="text-slate-600 mb-6">
+                By clicking “Connect Bank,” you authorize LLC Financial Dashboard to connect to your financial institution via Plaid to securely access your balances and transactions for display in your dashboard. We do not collect or store your banking credentials. See our <a href="/privacy.html" target="_blank" class="text-blue-600 underline">Privacy Policy</a> and Plaid’s <a href="https://plaid.com/legal/#end-user-privacy-policy" target="_blank" class="text-blue-600 underline">End User Privacy Policy</a>.
+            </p>
+            <button id="connect-bank-btn" class="bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-indigo-700 transition-colors disabled:bg-slate-400">
+                Connect Bank
+            </button>
+            <div id="plaid-connection-status" class="mt-4"></div>
+        </section>
+
+        <section id="ai-insights" class="mb-16">
+            <h3 class="text-3xl font-bold text-center text-slate-800 mb-8">✨ AI Financial Insights</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+                <!-- Financial Summary -->
+                <div class="bg-white p-8 rounded-xl shadow-md border border-slate-200">
+                    <h4 class="text-xl font-semibold text-slate-800 mb-4">Generate Financial Summary</h4>
+                    <p class="text-slate-600 mb-4">Get a quick, AI-powered analysis of your LLC's current financial health based on the dashboard data.</p>
+                    <button id="generate-summary-btn" class="w-full bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors">✨ Generate Summary</button>
+                    <div id="summary-loader" class="hidden mt-4 flex justify-center"><div class="spinner"></div></div>
+                    <div id="summary-output" class="mt-4 text-slate-700 bg-slate-50 p-4 rounded-lg hidden"></div>
+                </div>
+                <!-- Ask an AI Accountant -->
+                <div class="bg-white p-8 rounded-xl shadow-md border border-slate-200">
+                    <h4 class="text-xl font-semibold text-slate-800 mb-4">Ask an AI Accountant</h4>
+                    <p class="text-slate-600 mb-4">Have a question about real estate accounting? Ask here for a clear explanation.</p>
+                    <textarea id="ai-accountant-question" class="w-full border border-slate-300 rounded-lg p-2" rows="3" placeholder="e.g., What is the difference between capital improvements and repairs?"></textarea>
+                    <button id="ask-ai-btn" class="w-full mt-2 bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors">✨ Ask Question</button>
+                    <div id="ask-ai-loader" class="hidden mt-4 flex justify-center"><div class="spinner"></div></div>
+                    <div id="ask-ai-output" class="mt-4 text-slate-700 bg-slate-50 p-4 rounded-lg hidden"></div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="principles" class="mb-16">
+            <h3 class="text-3xl font-bold text-center text-slate-800 mb-8">Foundational Principles</h3>
+            <div class="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+                <div class="bg-white p-8 rounded-xl shadow-md border border-slate-200">
+                    <h4 class="text-xl font-semibold text-slate-800 mb-3">The Golden Rule: Financial Separation</h4>
+                    <p class="text-slate-600">The most critical concept is treating the LLC as a completely separate entity. This means a dedicated business bank account is non-negotiable. All income and expenses must flow through it.</p>
+                </div>
+                <div class="bg-white p-8 rounded-xl shadow-md border border-slate-200">
+                    <h4 class="text-xl font-semibold text-slate-800 mb-3">Pass-Through Taxation Explained</h4>
+                    <p class="text-slate-600">Your LLC itself doesn't pay income tax. Profits and losses are "passed through" to you and David, and you report them on your personal tax returns.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+    
+    <!-- Modal -->
+    <div id="account-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+        <div class="modal-bg fixed inset-0 bg-black bg-opacity-50"></div>
+        <div class="modal-content bg-white w-full max-w-4xl max-h-[90vh] rounded-2xl shadow-2xl relative flex flex-col transform scale-95 opacity-0">
+            <div class="flex items-center justify-between p-6 border-b border-slate-200">
+                <div>
+                    <h3 id="modal-title" class="text-2xl font-bold text-slate-800">Account Details</h3>
+                    <p id="modal-subtitle" class="text-sm text-slate-500"></p>
+                </div>
+                <button id="close-modal-btn" class="text-slate-400 hover:text-slate-600 text-3xl leading-none">&times;</button>
+            </div>
+            <div class="flex-grow p-6 overflow-y-auto">
+                <div id="modal-tabs" class="border-b border-slate-200 mb-6"></div>
+                <div id="modal-tab-content"></div>
+            </div>
+            <div id="modal-footer" class="p-6 bg-slate-50 border-t border-slate-200 rounded-b-2xl">
+                 <!-- Footer content will be injected here -->
+            </div>
+        </div>
+    </div>
+
+<script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+fastapi==0.115.0
+uvicorn[standard]==0.30.5
+SQLAlchemy==2.0.34
+psycopg[binary]==3.2.2
+cryptography==43.0.0
+plaid-python==18.0.0
+python-dotenv==1.0.1
