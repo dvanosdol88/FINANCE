@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Teller MVP — Balances & Transactions</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root { color-scheme: light dark; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji"; margin: 2rem; line-height: 1.4; }
+    h1 { margin-top: 0; }
+    button { padding: .6rem 1rem; font-weight: 600; cursor: pointer; }
+    #out { margin-top: 1rem; white-space: pre-wrap; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size: 14px; }
+    .row { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+    label { font-weight: 600; }
+    input[type="number"] { width: 6rem; padding: .3rem; }
+  </style>
+</head>
+<body>
+  <h1>Link Bank → Show Balance & Transactions</h1>
+  <p>This minimal page links a bank with Teller Connect and fetches account balances and recent transactions from the backend.</p>
+
+  <div class="row">
+    <button id="connect">Connect your bank</button>
+    <label for="count">Max transactions/account:</label>
+    <input type="number" id="count" value="50" min="1" max="500" />
+  </div>
+
+  <div id="out"></div>
+
+  <!-- Teller Connect -->
+  <script src="https://cdn.teller.io/connect/connect.js"></script>
+  <script>
+    const out = document.getElementById('out');
+    const countEl = document.getElementById('count');
+
+    function print(obj) {
+      out.textContent = typeof obj === 'string' ? obj : JSON.stringify(obj, null, 2);
+    }
+
+    async function postJSON(url, body) {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(body)
+      });
+      if (!res.ok) {
+        const text = await res.text().catch(() => "");
+        throw new Error(`HTTP ${res.status}: ${text}`);
+      }
+      return res.json();
+    }
+
+    document.getElementById('connect').addEventListener('click', () => {
+      const teller = TellerConnect.setup({
+        applicationId: "YOUR_TELLER_APPLICATION_ID", // replace with your actual App ID
+        // "sandbox" for fake data (no mTLS); "development" to connect to real banks (requires mTLS on server)
+        environment: "sandbox",
+        products: ["balance", "transactions"],
+
+        onSuccess: async (enrollment) => {
+          try {
+            print("Enrolled. Fetching data…");
+            const count = parseInt(countEl.value || "50", 10);
+            const data = await postJSON("/api/fetch", {
+              accessToken: enrollment.accessToken,
+              count
+            });
+            print(data);
+          } catch (err) {
+            print(String(err));
+          }
+        },
+        onExit: () => print("Connect closed.")
+      });
+      teller.open();
+    });
+  </script>
+</body>
+</html>

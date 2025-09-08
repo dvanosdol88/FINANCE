@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+.env
+
+# Editor
+.vscode/
+.idea/
+
+# Certs / keys (NEVER COMMIT)
+*.pem
+*.key
+*.crt
+teller_cert.pem
+teller_key.pem
